@@ -1,10 +1,6 @@
 import { chain } from "wagmi";
 
-export const supportedChains = [
-  // chain.optimism,
-  // chain.polygon,
-  chain.goerli,
-];
+export const supportedChains = [chain.optimism, chain.polygon, chain.goerli];
 
 export const chainIdToRPC = {
   [chain.optimism.id]: process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL,
@@ -34,12 +30,12 @@ export const chainIdToInfo: {
   };
 } = {
   [chain.optimism.id]: {
-    UniFeeSwap: "",
+    UniFeeSwap: "0x8C0751530452Ee6a7B98Fe571427D83ADF3335DE",
     UniV3NonfungiblePositionManager,
     feeTiers: ["0.01%", "0.05%", "0.3%", "1%"],
   },
   [chain.polygon.id]: {
-    UniFeeSwap: "",
+    UniFeeSwap: "0x2C06047C61393F8B1E89BEda86AC8c32E0817f8d",
     UniV3NonfungiblePositionManager,
     feeTiers: ["0.01%", "0.05%", "0.3%", "1%"],
   },
