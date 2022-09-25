@@ -26,6 +26,7 @@ import {
 } from "wagmi";
 import { supportedChains } from "@/config";
 import slicedAddress from "@/utils/slicedAddress";
+import useSupportedChain from "@/hooks/useSupportedChain";
 import Identicon from "./Identicon";
 import ConnectWallet from "./ConnectWallet";
 
@@ -39,7 +40,7 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
   const { data: etherBalance, isLoading: isBalanceLoading } = useBalance({
     addressOrName: account?.address,
   });
-  const { activeChain, switchNetwork } = useNetwork();
+  const { switchNetwork } = useNetwork();
   const { data: ensAvatar } = useEnsAvatar({
     addressOrName: account?.address,
   });
@@ -49,20 +50,17 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
     onOpen: openModal,
     onClose: closeModal,
   } = useDisclosure();
+  const { isSupportedChain } = useSupportedChain();
 
   useEffect(() => {
-    if (activeChain) {
-      if (
-        supportedChains.findIndex((chain) => chain.id === activeChain.id) === -1
-      ) {
-        openModal();
-      } else {
-        if (isModalOpen) {
-          closeModal();
-        }
+    if (!isSupportedChain) {
+      openModal();
+    } else {
+      if (isModalOpen) {
+        closeModal();
       }
     }
-  }, [activeChain]);
+  }, [isSupportedChain]);
 
   return account && account.address ? (
     <>

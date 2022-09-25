@@ -14,10 +14,12 @@ import {
 } from "@chakra-ui/react";
 import { useNetwork, useAccount } from "wagmi";
 import { supportedChains } from "@/config";
+import useSupportedChain from "@/hooks/useSupportedChain";
 
 function SwitchNetwork() {
   const { activeChain, switchNetwork } = useNetwork();
   const { data: account } = useAccount();
+  const { isSupportedChain } = useSupportedChain();
 
   const {
     isOpen: isModalOpen,
@@ -27,28 +29,24 @@ function SwitchNetwork() {
 
   return (
     <>
-      {account &&
-        account.address &&
-        activeChain &&
-        supportedChains.findIndex((chain) => chain.id === activeChain.id) !==
-          -1 && (
-          <Button
-            mr="1rem"
-            py="1.3rem"
-            background="gray.700"
-            borderRadius="lg"
-            onClick={() => openModal()}
-          >
-            <HStack>
-              <NextImg
-                src={`/icons/chains/${activeChain?.name}.png`}
-                width="24px"
-                height="24px"
-              />
-              <Text>{activeChain?.name}</Text>
-            </HStack>
-          </Button>
-        )}
+      {account && account.address && isSupportedChain && (
+        <Button
+          mr="1rem"
+          py="1.3rem"
+          background="gray.700"
+          borderRadius="lg"
+          onClick={() => openModal()}
+        >
+          <HStack>
+            <NextImg
+              src={`/icons/chains/${activeChain?.name}.png`}
+              width="24px"
+              height="24px"
+            />
+            <Text>{activeChain?.name}</Text>
+          </HStack>
+        </Button>
+      )}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
