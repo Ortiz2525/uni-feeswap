@@ -8,13 +8,19 @@ import {
   Heading,
   Text,
   CircularProgress,
+  Image,
+  Stack,
+  Divider,
+  HStack,
+  Spacer,
 } from "@chakra-ui/react";
 import { useAccount, useNetwork } from "wagmi";
 import axios from "axios";
 import { UniV3NonfungiblePositionManager } from "@/config";
-import { MoralisNFTBalanceResult, NFTBalance } from "@/types";
+import { MoralisNFTBalanceResult, NFTBalance, UniV3Metadata } from "@/types";
 import useSupportedChain from "@/hooks/useSupportedChain";
 import Layout from "@/components/Layout";
+import GradientButton from "@/components/GradientButton";
 
 const Home: NextPage = () => {
   const { data: account } = useAccount();
@@ -63,16 +69,51 @@ const Home: NextPage = () => {
         <link rel="icon" type="image/png" href="/favicon.png"></link>
       </Head>
       <Center flexDir="column">
-        <Box mt="2rem" py="2rem" px="10rem" boxShadow="2xl" rounded="lg">
+        <Box mt="2rem" py="2rem" px="3rem" boxShadow="2xl" rounded="lg">
           <VStack spacing="2rem">
             <Heading fontSize="2xl">Your Uniswap V3 Positions</Heading>
+            <Divider />
             {fetchingUniV3Positions && (
               <CircularProgress color="purple.300" isIndeterminate />
             )}
             {uniV3Positions &&
-              uniV3Positions.map((pos, i) => (
-                <Text key={i}>{pos.token_id}</Text>
-              ))}
+              uniV3Positions.map((pos, i) => {
+                const metadata = JSON.parse(pos.metadata) as UniV3Metadata;
+
+                return (
+                  <Stack
+                    key={i}
+                    direction={{ base: "column", md: "row" }}
+                    alignItems={{ base: "center", md: "stretch" }}
+                    mx={4}
+                    py="2rem"
+                    px="3rem"
+                    spacing={5}
+                    justifyContent="space-between"
+                    boxShadow="lg"
+                    rounded="lg"
+                  >
+                    <Image h="25rem" src={metadata.image} alt={metadata.name} />
+                    <Box>
+                      <Box mt="2rem" ml="1rem">
+                        <Text fontWeight="bold">{metadata.name}</Text>
+                        <Divider mt="0.5rem" />
+                        <HStack mt="1rem">
+                          <Text fontWeight="bold">TokenId</Text>
+                          <Spacer />
+                          <Text>{pos.token_id}</Text>
+                        </HStack>
+                        <Center mt="6rem">
+                          <GradientButton
+                            text="Swap Fee Tier"
+                            onClick={() => console.log("click")}
+                          />
+                        </Center>
+                      </Box>
+                    </Box>
+                  </Stack>
+                );
+              })}
           </VStack>
         </Box>
       </Center>
