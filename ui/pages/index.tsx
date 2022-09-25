@@ -8,7 +8,10 @@ const Home: NextPage = () => {
   return (
     <Layout>
       <Head>
-        <title>🦄 UniFeeSwap</title>
+        <title>
+          UniFeeSwap | Swap your Uniswap V3 liquidity&apos;s fee tier
+        </title>
+        <link rel="icon" type="image/png" href="/favicon.png"></link>
       </Head>
       <Center flexDir="column">
         <Box mt="2rem" py="2rem" px="10rem" boxShadow="2xl" rounded="lg">
