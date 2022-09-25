@@ -15,7 +15,7 @@ import {
 import { ExternalLinkIcon, CopyIcon } from "@chakra-ui/icons";
 import { useNetwork, useAccount, useEnsName, useDisconnect } from "wagmi";
 import Identicon from "./Identicon";
-import slicedAddress from "../../utils/slicedAddress";
+import slicedAddress from "@/utils/slicedAddress";
 
 type Props = {
   isOpen: any;

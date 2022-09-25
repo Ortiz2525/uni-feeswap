@@ -1,11 +1,11 @@
 import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
-import customTheme from "../styles/theme";
+import customTheme from "@/styles/theme";
 import { WagmiConfig, createClient, configureChains } from "wagmi";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { InjectedConnector } from "wagmi/connectors/injected";
 import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
-import { supportedChains, chainIdToRPC } from "../config";
+import { supportedChains, chainIdToRPC } from "@/config";
 
 const { chains, provider } = configureChains(supportedChains, [
   jsonRpcProvider({

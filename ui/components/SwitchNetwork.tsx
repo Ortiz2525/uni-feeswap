@@ -13,7 +13,7 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import { useNetwork, useAccount } from "wagmi";
-import { supportedChains } from "../config";
+import { supportedChains } from "@/config";
 
 function SwitchNetwork() {
   const { activeChain, switchNetwork } = useNetwork();

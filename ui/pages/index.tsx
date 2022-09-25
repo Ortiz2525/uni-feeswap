@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { Center, Box, VStack, Heading } from "@chakra-ui/react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 
 const Home: NextPage = () => {
   return (

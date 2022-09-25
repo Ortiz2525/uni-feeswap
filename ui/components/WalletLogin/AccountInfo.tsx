@@ -24,8 +24,8 @@ import {
   useEnsAvatar,
   useNetwork,
 } from "wagmi";
-import { supportedChains } from "../../config";
-import slicedAddress from "../../utils/slicedAddress";
+import { supportedChains } from "@/config";
+import slicedAddress from "@/utils/slicedAddress";
 import Identicon from "./Identicon";
 import ConnectWallet from "./ConnectWallet";
 
