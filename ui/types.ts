@@ -19,6 +19,15 @@ export interface NFTBalance {
   last_metadata_sync: string;
 }
 
+export interface UniV3Position {
+  token_address: string;
+  token_id: string;
+  owner_of: string;
+  name: string;
+  symbol: string;
+  metadata: UniV3Metadata;
+}
+
 export interface UniV3Metadata {
   name: string; // "Uniswap - 1% - UNI/WETH - 1.0000<>1.9738"
   image: string; // "data:image/svg+xml;base64,..."
