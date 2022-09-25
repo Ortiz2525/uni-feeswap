@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Center,
   Box,
@@ -9,10 +10,30 @@ import {
   Spacer,
   Button,
 } from "@chakra-ui/react";
+import { useNetwork, useContractRead } from "wagmi";
 import { UniV3Position } from "@/types";
+import { chainIdToInfo } from "@/config";
 import GradientButton from "./GradientButton";
+import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
 
 const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
+  const { chain } = useNetwork();
+
+  const [newFeeTierIndex, setNewFeeTierIndex] = useState<number>();
+
+  const currentFeeTier = pos.metadata.name
+    .split(" ")
+    .filter((e) => e.slice(-1) === "%")[0];
+
+  const { data: isApproved } = useContractRead({
+    addressOrName: chainIdToInfo[chain!.id].UniV3NonfungiblePositionManager,
+    contractInterface: NonfungiblePositionManagerABI,
+    functionName: "getApproved",
+    args: pos.token_id,
+  });
+
+  const confirm = async () => {};
+
   return (
     <Stack
       direction={{ base: "column", md: "row" }}
@@ -38,18 +59,31 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
             <Text fontWeight="bolder" fontSize="xl">
               Select New Fee Tier
             </Text>
-            <Stack
-              mt="1rem"
-              direction="row"
-              spacing={5}
-              justifyContent="space-between"
-            >
-              {["0.01%", "0.05%", "0.3%", "1%"].map((tier, i) => (
-                <Button key={i} w="5rem" h="5rem" variant="outline">
-                  {tier}
-                </Button>
-              ))}
-            </Stack>
+            <Center>
+              <Stack
+                mt="1rem"
+                w="20rem"
+                direction="row"
+                justifyContent="space-between"
+              >
+                {chain &&
+                  chainIdToInfo[chain.id].feeTiers
+                    .filter((tier) => tier !== currentFeeTier)
+                    .map((tier, i) => (
+                      <Button
+                        key={i}
+                        w="5rem"
+                        h="5rem"
+                        colorScheme={i === newFeeTierIndex ? "green" : ""}
+                        bgColor={i === newFeeTierIndex ? "green.600" : ""}
+                        variant={i !== newFeeTierIndex ? "outline" : ""}
+                        onClick={() => setNewFeeTierIndex(i)}
+                      >
+                        {tier}
+                      </Button>
+                    ))}
+              </Stack>
+            </Center>
             <Center mt="2rem">
               <GradientButton
                 text="Confirm"

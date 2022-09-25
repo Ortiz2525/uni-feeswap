@@ -8,10 +8,11 @@ import {
   Heading,
   CircularProgress,
   Divider,
+  Text,
 } from "@chakra-ui/react";
 import { useAccount, useNetwork } from "wagmi";
 import axios from "axios";
-import { UniV3NonfungiblePositionManager } from "@/config";
+import { chainIdToInfo } from "@/config";
 import {
   MoralisNFTBalanceResult,
   NFTBalance,
@@ -27,8 +28,8 @@ import UniswapPosition from "@/components/UniswapPosition";
 import BackButton from "@/components/BackButton";
 
 const Home: NextPage = () => {
-  const { data: account } = useAccount();
-  const { activeChain } = useNetwork();
+  const { address } = useAccount();
+  const { chain } = useNetwork();
   const { isSupportedChain } = useSupportedChain();
 
   const [uniV3Positions, setUniV3Positions] = useState<UniV3Position[]>();
@@ -38,7 +39,7 @@ const Home: NextPage = () => {
   const fetchUniswapPositions = async () => {
     setFetchingUniV3Positions(true);
     // const nftBalances = await axios.get<MoralisNFTBalanceResult>(
-    //   `https://deep-index.moralis.io/api/v2/${account?.address}/nft`,
+    //   `https://deep-index.moralis.io/api/v2/${address}/nft`,
     //   {
     //     params: {
     //       chain: activeChain!.name,
@@ -56,7 +57,10 @@ const Home: NextPage = () => {
       nftBalances.data.result
         .filter(
           (nft) =>
-            nft.token_address === UniV3NonfungiblePositionManager.toLowerCase()
+            nft.token_address ===
+            chainIdToInfo[
+              chain!.id
+            ].UniV3NonfungiblePositionManager.toLowerCase()
         )
         .map((nft) => ({
           token_address: nft.token_address,
@@ -71,10 +75,10 @@ const Home: NextPage = () => {
   };
 
   useEffect(() => {
-    if (account && isSupportedChain) {
+    if (address && isSupportedChain) {
       fetchUniswapPositions();
     }
-  }, [account, isSupportedChain]);
+  }, [address, isSupportedChain]);
 
   return (
     <Layout>
@@ -85,7 +89,15 @@ const Home: NextPage = () => {
         <link rel="icon" type="image/png" href="/favicon.png"></link>
       </Head>
       <Center flexDir="column">
-        <Box my="2rem" py="2rem" px="3rem" boxShadow="2xl" rounded="lg">
+        <Box
+          my="2rem"
+          py="2rem"
+          px="3rem"
+          minW="40rem"
+          minH="20rem"
+          boxShadow="2xl"
+          rounded="lg"
+        >
           <VStack spacing="2rem">
             <Heading fontSize="2xl">
               {!selectedPosition
@@ -97,14 +109,19 @@ const Home: NextPage = () => {
               <CircularProgress color="purple.300" isIndeterminate />
             )}
             {!selectedPosition ? (
-              uniV3Positions &&
-              uniV3Positions.map((pos, i) => (
-                <UniswapPositionCard
-                  key={i}
-                  pos={pos}
-                  setSelectedPosition={setSelectedPosition}
-                />
-              ))
+              uniV3Positions ? (
+                uniV3Positions.map((pos, i) => (
+                  <UniswapPositionCard
+                    key={i}
+                    pos={pos}
+                    setSelectedPosition={setSelectedPosition}
+                  />
+                ))
+              ) : (
+                <Text pt="3rem" fontSize="xl">
+                  Connect Wallet to use the dapp ↗️
+                </Text>
+              )
             ) : (
               <Box>
                 <BackButton onClick={() => setSelectedPosition(undefined)} />

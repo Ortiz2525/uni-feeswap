@@ -23,6 +23,7 @@ import {
   useBalance,
   useEnsAvatar,
   useNetwork,
+  useSwitchNetwork,
 } from "wagmi";
 import { supportedChains } from "@/config";
 import slicedAddress from "@/utils/slicedAddress";
@@ -35,14 +36,14 @@ type Props = {
 };
 
 const AccountInfo = ({ handleOpenModal }: Props) => {
-  const { data: account } = useAccount();
-  const { data: ensName } = useEnsName({ address: account?.address });
+  const { address } = useAccount();
+  const { data: ensName } = useEnsName({ address });
   const { data: etherBalance, isLoading: isBalanceLoading } = useBalance({
-    addressOrName: account?.address,
+    addressOrName: address,
   });
-  const { switchNetwork } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
   const { data: ensAvatar } = useEnsAvatar({
-    addressOrName: account?.address,
+    addressOrName: address,
   });
 
   const {
@@ -62,7 +63,7 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
     }
   }, [isSupportedChain]);
 
-  return account && account.address ? (
+  return address ? (
     <>
       <Box
         display="flex"
@@ -98,7 +99,7 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
           h="38px"
         >
           <Text color="white" fontSize="md" fontWeight="medium" mr="2">
-            {ensName ?? slicedAddress(account.address)}
+            {ensName ?? slicedAddress(address)}
           </Text>
           {ensAvatar ? (
             <Image

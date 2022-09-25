@@ -5,17 +5,17 @@ import { supportedChains } from "@/config";
 function useSupportedChain() {
   const [isSupportedChain, setIsSupportedChain] = useState(false);
 
-  const { activeChain } = useNetwork();
+  const { chain } = useNetwork();
 
   useEffect(() => {
-    if (activeChain) {
+    if (chain) {
       setIsSupportedChain(
-        supportedChains.findIndex((chain) => chain.id === activeChain.id) !== -1
+        supportedChains.findIndex((_chain) => _chain.id === chain.id) !== -1
       );
     } else {
       setIsSupportedChain(false);
     }
-  }, [activeChain]);
+  }, [chain]);
 
   return { isSupportedChain };
 }

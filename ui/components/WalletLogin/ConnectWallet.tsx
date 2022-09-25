@@ -16,7 +16,7 @@ import {
 import { Connector, useConnect } from "wagmi";
 
 function ConnectWallet() {
-  const { connect, connectors, isConnecting, pendingConnector } = useConnect();
+  const { connect, connectors, isLoading, pendingConnector } = useConnect();
   const {
     isOpen: isModalOpen,
     onOpen: openModal,
@@ -24,14 +24,14 @@ function ConnectWallet() {
   } = useDisclosure();
 
   const handleConnectWallet = (connector: Connector) => {
-    connect(connector);
+    connect({ connector });
   };
 
   return (
     <>
       <Button
         onClick={openModal}
-        isLoading={isConnecting}
+        isLoading={isLoading}
         loadingText="Connecting"
       >
         Connect Wallet
@@ -54,9 +54,7 @@ function ConnectWallet() {
                   mb="0.5rem"
                   isDisabled={!connector.ready}
                   onClick={() => handleConnectWallet(connector)}
-                  isLoading={
-                    isConnecting && connector.id === pendingConnector?.id
-                  }
+                  isLoading={isLoading && connector.id === pendingConnector?.id}
                   loadingText={connector.name}
                 >
                   <HStack>

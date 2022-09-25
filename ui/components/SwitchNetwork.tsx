@@ -12,13 +12,14 @@ import {
   HStack,
   ModalCloseButton,
 } from "@chakra-ui/react";
-import { useNetwork, useAccount } from "wagmi";
+import { useNetwork, useSwitchNetwork, useAccount } from "wagmi";
 import { supportedChains } from "@/config";
 import useSupportedChain from "@/hooks/useSupportedChain";
 
 function SwitchNetwork() {
-  const { activeChain, switchNetwork } = useNetwork();
-  const { data: account } = useAccount();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
+  const { address } = useAccount();
   const { isSupportedChain } = useSupportedChain();
 
   const {
@@ -29,7 +30,7 @@ function SwitchNetwork() {
 
   return (
     <>
-      {account && account.address && isSupportedChain && (
+      {address && isSupportedChain && (
         <Button
           mr="1rem"
           py="1.3rem"
@@ -39,11 +40,11 @@ function SwitchNetwork() {
         >
           <HStack>
             <NextImg
-              src={`/icons/chains/${activeChain?.name}.png`}
+              src={`/icons/chains/${chain?.name}.png`}
               width="24px"
               height="24px"
             />
-            <Text>{activeChain?.name}</Text>
+            <Text>{chain?.name}</Text>
           </HStack>
         </Button>
       )}
@@ -59,30 +60,30 @@ function SwitchNetwork() {
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={3} my="1rem" mx="auto" maxW="9rem">
-              {supportedChains.map((chain, i) => (
+              {supportedChains.map((_chain, i) => (
                 <Button
                   key={i}
                   bgColor="white"
                   color="black"
                   _hover={
-                    activeChain && chain.id !== activeChain.id
+                    chain && _chain.id !== chain.id
                       ? {
                           bgColor: "gray.400",
                         }
                       : {}
                   }
                   onClick={() => {
-                    switchNetwork!(chain.id);
+                    switchNetwork!(_chain.id);
                   }}
-                  isDisabled={activeChain && chain.id === activeChain.id}
+                  isDisabled={chain && _chain.id === chain.id}
                 >
                   <HStack>
                     <NextImg
-                      src={`/icons/chains/${chain.name}.png`}
+                      src={`/icons/chains/${_chain.name}.png`}
                       width="24px"
                       height="24px"
                     />
-                    <Text>{chain.name}</Text>
+                    <Text>{_chain.name}</Text>
                   </HStack>
                 </Button>
               ))}

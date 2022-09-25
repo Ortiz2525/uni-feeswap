@@ -23,9 +23,9 @@ type Props = {
 };
 
 const AccountModal = ({ isOpen, onClose }: Props) => {
-  const { activeChain } = useNetwork();
-  const { data: account } = useAccount();
-  const { data: ensName } = useEnsName({ address: account?.address });
+  const { chain } = useNetwork();
+  const { address, connector } = useAccount();
+  const { data: ensName } = useEnsName({ address });
   const { disconnect } = useDisconnect();
 
   function handleDisconnectAccount() {
@@ -66,7 +66,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
           >
             <Flex justifyContent="space-between" alignItems="center" mb={3}>
               <Text color="gray.400" fontSize="sm">
-                Connected with {account?.connector?.name}
+                Connected with {connector?.name}
               </Text>
               <Button
                 onClick={handleDisconnectAccount}
@@ -97,10 +97,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
                 ml="2"
                 lineHeight="1.1"
               >
-                {ensName ??
-                  (account &&
-                    account.address &&
-                    slicedAddress(account.address))}
+                {ensName ?? (address && slicedAddress(address))}
               </Text>
             </Flex>
             <Flex alignContent="center" m={3}>
@@ -114,7 +111,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
                   color: "whiteAlpha.800",
                 }}
                 onClick={() => {
-                  navigator.clipboard.writeText(account?.address!);
+                  navigator.clipboard.writeText(address!);
                 }}
               >
                 <CopyIcon mr={1} />
@@ -124,7 +121,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
                 fontSize="sm"
                 display="flex"
                 alignItems="center"
-                href={`${activeChain?.blockExplorers?.default.url}/address/${account?.address}`}
+                href={`${chain?.blockExplorers?.default.url}/address/${address}`}
                 isExternal
                 color="gray.400"
                 ml={6}
