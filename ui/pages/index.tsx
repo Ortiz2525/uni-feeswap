@@ -38,20 +38,20 @@ const Home: NextPage = () => {
 
   const fetchUniswapPositions = async () => {
     setFetchingUniV3Positions(true);
-    // const nftBalances = await axios.get<MoralisNFTBalanceResult>(
-    //   `https://deep-index.moralis.io/api/v2/${address}/nft`,
-    //   {
-    //     params: {
-    //       chain: activeChain!.name,
-    //     },
-    //     headers: {
-    //       "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY!,
-    //       accept: "application/json",
-    //     },
-    //   }
-    // );
+    const nftBalances = await axios.get<MoralisNFTBalanceResult>(
+      `https://deep-index.moralis.io/api/v2/${address}/nft`,
+      {
+        params: {
+          chain: chain!.name,
+        },
+        headers: {
+          "X-API-Key": process.env.NEXT_PUBLIC_MORALIS_API_KEY!,
+          accept: "application/json",
+        },
+      }
+    );
 
-    const nftBalances = mockAPIData;
+    // const nftBalances = mockAPIData; // for local tests
 
     setUniV3Positions(
       nftBalances.data.result

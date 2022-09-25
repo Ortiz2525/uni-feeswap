@@ -13,16 +13,14 @@ const StyledIdenticon = styled.div`
 
 const Identicon = () => {
   const ref = useRef<HTMLDivElement>();
-  const { data: account } = useAccount();
+  const { address } = useAccount();
 
   useEffect(() => {
-    if (account?.address && ref.current) {
+    if (address && ref.current) {
       ref.current.innerHTML = "";
-      ref.current.appendChild(
-        Jazzicon(16, parseInt(account.address.slice(2, 10), 16))
-      );
+      ref.current.appendChild(Jazzicon(16, parseInt(address.slice(2, 10), 16)));
     }
-  }, [account]);
+  }, [address]);
 
   return <StyledIdenticon ref={ref as any} />;
 };

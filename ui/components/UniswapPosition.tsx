@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Center,
   Box,
@@ -10,29 +10,80 @@ import {
   Spacer,
   Button,
 } from "@chakra-ui/react";
-import { useNetwork, useContractRead } from "wagmi";
+import {
+  useNetwork,
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+} from "wagmi";
 import { UniV3Position } from "@/types";
 import { chainIdToInfo } from "@/config";
 import GradientButton from "./GradientButton";
 import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
+import UniFeeSwapABI from "@/abis/UniFeeSwap.json";
 
 const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
   const { chain } = useNetwork();
 
   const [newFeeTierIndex, setNewFeeTierIndex] = useState<number>();
+  const [newFee, setNewFee] = useState<number>();
 
   const currentFeeTier = pos.metadata.name
     .split(" ")
     .filter((e) => e.slice(-1) === "%")[0];
 
-  const { data: isApproved } = useContractRead({
+  const { data: operator } = useContractRead({
     addressOrName: chainIdToInfo[chain!.id].UniV3NonfungiblePositionManager,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "getApproved",
     args: pos.token_id,
   });
 
-  const confirm = async () => {};
+  const { config: approveConfig } = usePrepareContractWrite({
+    addressOrName: chainIdToInfo[chain!.id].UniV3NonfungiblePositionManager,
+    contractInterface: NonfungiblePositionManagerABI,
+    functionName: "approve",
+    args: [chainIdToInfo[chain!.id].UniFeeSwap, pos.token_id],
+  });
+  const { config: feeSwapConfig } = usePrepareContractWrite({
+    addressOrName: chainIdToInfo[chain!.id].UniFeeSwap,
+    contractInterface: UniFeeSwapABI,
+    functionName: "feeSwap",
+    args: [pos.token_id, newFee, 0],
+  });
+
+  const { write: approveWrite, isLoading: isApproveLoading } = useContractWrite(
+    {
+      ...approveConfig,
+      async onSuccess(data) {
+        await data.wait();
+        feeSwapWrite?.();
+      },
+    }
+  );
+  const { write: feeSwapWrite, isLoading: isFeeSwapLoading } =
+    useContractWrite(feeSwapConfig);
+
+  const confirm = () => {
+    if (
+      operator?.toLowerCase() !==
+      chainIdToInfo[chain!.id].UniFeeSwap.toLowerCase()
+    ) {
+      approveWrite?.();
+    } else {
+      feeSwapWrite?.();
+    }
+  };
+
+  useEffect(() => {
+    if (newFeeTierIndex && chain) {
+      setNewFee(
+        parseFloat(
+          chainIdToInfo[chain.id].feeTiers[newFeeTierIndex].slice(0, -1)
+        ) * 10000
+      );
+    }
+  }, [newFeeTierIndex, chain]);
 
   return (
     <Stack
@@ -87,7 +138,8 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
             <Center mt="2rem">
               <GradientButton
                 text="Confirm"
-                onClick={() => console.log("Confirmed")}
+                onClick={() => confirm()}
+                isLoading={isApproveLoading || isFeeSwapLoading}
               />
             </Center>
           </Box>
