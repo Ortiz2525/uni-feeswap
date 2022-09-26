@@ -18,7 +18,11 @@ import useSupportedChain from "@/hooks/useSupportedChain";
 
 function SwitchNetwork() {
   const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
+  const { switchNetwork } = useSwitchNetwork({
+    onSuccess() {
+      closeModal();
+    },
+  });
   const { address } = useAccount();
   const { isSupportedChain } = useSupportedChain();
 

@@ -35,20 +35,21 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     .filter((e) => e.slice(-1) === "%")[0];
 
   const { data: operator } = useContractRead({
-    addressOrName: UniV3NonfungiblePositionManager!,
+    addressOrName: UniV3NonfungiblePositionManager,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "getApproved",
     args: pos.token_id,
   });
 
   const { config: approveConfig } = usePrepareContractWrite({
-    addressOrName: UniV3NonfungiblePositionManager!,
+    addressOrName: UniV3NonfungiblePositionManager,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "approve",
     args: [UniFeeSwap, pos.token_id],
+    enabled: operator?.toLowerCase() !== UniFeeSwap.toLowerCase(),
   });
   const { config: feeSwapConfig } = usePrepareContractWrite({
-    addressOrName: UniFeeSwap!,
+    addressOrName: UniFeeSwap,
     contractInterface: UniFeeSwapABI,
     functionName: "feeSwap",
     args: [pos.token_id, newFee, 0],
@@ -67,7 +68,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     useContractWrite(feeSwapConfig);
 
   const confirm = () => {
-    if (operator?.toLowerCase() !== UniFeeSwap?.toLowerCase()) {
+    if (operator?.toLowerCase() !== UniFeeSwap.toLowerCase()) {
       approveWrite?.();
     } else {
       feeSwapWrite?.();

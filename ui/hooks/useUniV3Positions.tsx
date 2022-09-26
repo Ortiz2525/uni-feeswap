@@ -43,24 +43,28 @@ const useUniV3Positions = () => {
   });
 
   useEffect(() => {
-    if (balance) {
-      if (balance > 0) {
-        if (!uniV3Positions) {
-          setFetchingUniV3Positions(true);
-        } else {
-          setFetchingUniV3Positions(false);
+    if (chain && address) {
+      if (balance) {
+        if (balance > 0) {
+          if (!uniV3Positions) {
+            setFetchingUniV3Positions(true);
+          } else {
+            setFetchingUniV3Positions(false);
+          }
         }
+      } else {
+        setFetchingUniV3Positions(true);
       }
     } else {
       setFetchingUniV3Positions(false);
     }
-  }, [isSupportedChain, balance, uniV3Positions]);
+  }, [balance, uniV3Positions, chain, address]);
 
   useEffect(() => {
-    // reset when chain switched
+    // reset when chain or address changed
     setBalance(undefined);
     setUniV3Positions(undefined);
-  }, [chain]);
+  }, [chain, address]);
 
   useEffect(() => {
     const fetchTokenIds = async () => {

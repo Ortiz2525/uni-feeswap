@@ -69,7 +69,8 @@ const Home: NextPage = () => {
                 ))
               ) : (
                 !balance &&
-                address && (
+                address &&
+                !fetchingUniV3Positions && (
                   <Text pt="3rem" fontSize="xl">
                     You don&apos;t have any active Uniswap V3 Positions
                   </Text>
