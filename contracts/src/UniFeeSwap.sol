@@ -217,8 +217,38 @@ contract UniFeeSwap {
         _approveToken(token0, address(nonfungiblePositionManager));
         _approveToken(token1, address(nonfungiblePositionManager));
 
-        int24 newTickLower = _getNewTick(tickLower, newFee);
-        int24 newTickUpper = _getNewTick(tickUpper, newFee);
+        // cache the value
+        int24 newTickSpacing = factory.feeAmountTickSpacing(newFee);
+
+        int24 newTickLower = _getNewTick(tickLower, newTickSpacing);
+        int24 newTickUpper = _getNewTick(tickUpper, newTickSpacing);
+
+        if (newTickLower == newTickUpper) {
+            /**
+             * Happens when oldTickSpacing < newTickSpacing
+             * ===Eg:===
+             *                                        <----d1----><------d2------>
+             *                      ||                |          ||              |             ||
+             * oldTickSpacing =  1: 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20
+             * newTickSpacing = 10: 0  *  *  *  *  *  *  *  *  * 10  *  *  *  *  *  *  *  *  * 20
+             *
+             * ticks in range [6 - 15] on oldTickSpacing all correspond to 10 in newTickSpacing
+             * if both equi-distant from 10, then newLower = 0,  newUpper = 20
+             * if oldLower     nearer to 10, then newLower = 10, newUpper = 20
+             * if oldLower farther from 10,  then newLower = 0,  newUpper = 10
+             *
+             */
+            int24 d1 = newTickLower - tickLower;
+            int24 d2 = tickUpper - newTickLower;
+            if (d1 == d2) {
+                newTickLower -= newTickSpacing;
+                newTickUpper += newTickSpacing;
+            } else if (d1 < d2) {
+                newTickUpper += newTickSpacing;
+            } else {
+                newTickLower -= newTickSpacing;
+            }
+        }
 
         (, , amount0Used, amount1Used) = nonfungiblePositionManager.mint(
             INonfungiblePositionManager.MintParams({
@@ -249,15 +279,14 @@ contract UniFeeSwap {
     /**
      * @dev Finds the tick nearest to the current tick, corresponding to the pool with `newFee`
      */
-    function _getNewTick(int24 tick, uint24 newFee)
+    function _getNewTick(int24 tick, int24 newTickSpacing)
         internal
-        view
+        pure
         returns (int24 newTick)
     {
-        int24 tickSpacing = factory.feeAmountTickSpacing(newFee);
-        int24 quotient = tick / tickSpacing;
+        int24 quotient = tick / newTickSpacing;
 
-        int24 nearestLowerTick = quotient * tickSpacing;
+        int24 nearestLowerTick = quotient * newTickSpacing;
         if (nearestLowerTick == tick) {
             return tick;
         }
@@ -266,11 +295,11 @@ contract UniFeeSwap {
          *      |<---------tickSpacing--------->|
          */
         int24 diffFromLowerTick = tick - nearestLowerTick;
-        int24 diffFromUpperTick = tickSpacing - diffFromLowerTick;
+        int24 diffFromUpperTick = newTickSpacing - diffFromLowerTick;
 
         // find which tick is nearest
         // round down if in the middle
-        if (diffFromLowerTick < diffFromUpperTick) {
+        if (diffFromLowerTick <= diffFromUpperTick) {
             newTick = nearestLowerTick;
         } else {
             newTick = tick + diffFromUpperTick;
