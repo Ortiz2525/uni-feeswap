@@ -36,18 +36,33 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     signerOrProvider: provider,
   });
 
-  const [newFeeTierIndex, setNewFeeTierIndex] = useState<number>();
+  const [feeTierPercent, setFeeTierPercent] = useState<string>();
   const [newFee, setNewFee] = useState<number>();
+  const [operator, setOperator] = useState<string>();
 
   const currentFeeTier = pos.metadata.name
     .split(" ")
     .filter((e) => e.slice(-1) === "%")[0];
+
+  useContractRead({
+    addressOrName: UniV3NonfungiblePositionManager,
+    contractInterface: NonfungiblePositionManagerABI,
+    functionName: "getApproved",
+    args: pos.token_id,
+    onSuccess(data) {
+      setOperator(data as unknown as string);
+    },
+  });
 
   const { config: approveConfig } = usePrepareContractWrite({
     addressOrName: UniV3NonfungiblePositionManager,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "approve",
     args: [UniFeeSwap, pos.token_id],
+    enabled: operator?.toLowerCase() !== UniFeeSwap.toLowerCase(),
+    onSuccess(data) {
+      feeSwapWrite?.();
+    },
   });
   const { config: feeSwapConfig } = usePrepareContractWrite({
     addressOrName: UniFeeSwap,
@@ -69,11 +84,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     useContractWrite(feeSwapConfig);
 
   const confirm = async () => {
-    const operator = (await nonfungiblePositionManagerContract.getApproved(
-      pos.token_id
-    )) as string;
-
-    if (operator.toLowerCase() !== UniFeeSwap.toLowerCase()) {
+    if (operator?.toLowerCase() !== UniFeeSwap.toLowerCase()) {
       approveWrite?.();
     } else {
       feeSwapWrite?.();
@@ -81,10 +92,10 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
   };
 
   useEffect(() => {
-    if (newFeeTierIndex && chain) {
-      setNewFee(parseFloat(feeTiers![newFeeTierIndex].slice(0, -1)) * 10000);
+    if (feeTierPercent && chain && feeTiers) {
+      setNewFee(parseFloat(feeTierPercent.slice(0, -1)) * 10000);
     }
-  }, [newFeeTierIndex, chain]);
+  }, [feeTierPercent, chain, feeTiers]);
 
   return (
     <Stack
@@ -127,10 +138,10 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
                         key={i}
                         w="5rem"
                         h="5rem"
-                        colorScheme={i === newFeeTierIndex ? "green" : ""}
-                        bgColor={i === newFeeTierIndex ? "green.600" : ""}
-                        variant={i !== newFeeTierIndex ? "outline" : ""}
-                        onClick={() => setNewFeeTierIndex(i)}
+                        colorScheme={tier === feeTierPercent ? "green" : ""}
+                        bgColor={tier === feeTierPercent ? "green.600" : ""}
+                        variant={tier !== feeTierPercent ? "outline" : ""}
+                        onClick={() => setFeeTierPercent(tier)}
                       >
                         {tier}
                       </Button>
@@ -141,7 +152,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
               <GradientButton
                 text="Confirm"
                 onClick={() => confirm()}
-                isDisabled={newFeeTierIndex === undefined}
+                isDisabled={feeTierPercent === undefined}
                 isLoading={isApproveLoading || isFeeSwapLoading}
               />
             </Center>
