@@ -114,6 +114,24 @@ contract UniFeeSwap {
         );
     }
 
+    function getNewTicks(uint256 tokenId, uint24 newFee)
+        external
+        view
+        returns (
+            int24 oldTickLower,
+            int24 oldTickUpper,
+            int24 newTickLower,
+            int24 newTickUpper
+        )
+    {
+        (, , oldTickLower, oldTickUpper, ) = _getPositionInfo(tokenId, newFee);
+        (newTickLower, newTickUpper) = _getNewTicks(
+            oldTickLower,
+            oldTickUpper,
+            newFee
+        );
+    }
+
     function withdrawDevShare(IERC20[] calldata tokens) external onlyDev {
         for (uint256 i; i < tokens.length; i++) {
             uint256 balance = tokens[i].balanceOf(address(this));
@@ -217,11 +235,48 @@ contract UniFeeSwap {
         _approveToken(token0, address(nonfungiblePositionManager));
         _approveToken(token1, address(nonfungiblePositionManager));
 
+        (int24 newTickLower, int24 newTickUpper) = _getNewTicks(
+            tickLower,
+            tickUpper,
+            newFee
+        );
+
+        (, , amount0Used, amount1Used) = nonfungiblePositionManager.mint(
+            INonfungiblePositionManager.MintParams({
+                token0: token0,
+                token1: token1,
+                fee: newFee,
+                tickLower: newTickLower,
+                tickUpper: newTickUpper,
+                amount0Desired: amount0,
+                amount1Desired: amount1,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: msg.sender,
+                deadline: block.timestamp
+            })
+        );
+
+        _handleResidue(
+            token0,
+            token1,
+            amount0,
+            amount1,
+            amount0Used,
+            amount1Used
+        );
+    }
+
+    function _getNewTicks(
+        int24 tickLower,
+        int24 tickUpper,
+        uint24 newFee
+    ) internal view returns (int24 newTickLower, int24 newTickUpper) {
         // cache the value
         int24 newTickSpacing = factory.feeAmountTickSpacing(newFee);
 
-        int24 newTickLower = _getNewTick(tickLower, newTickSpacing);
-        int24 newTickUpper = _getNewTick(tickUpper, newTickSpacing);
+        newTickLower = _getNewTick(tickLower, newTickSpacing);
+        newTickUpper = _getNewTick(tickUpper, newTickSpacing);
 
         if (newTickLower == newTickUpper) {
             /**
@@ -249,31 +304,6 @@ contract UniFeeSwap {
                 newTickLower -= newTickSpacing;
             }
         }
-
-        (, , amount0Used, amount1Used) = nonfungiblePositionManager.mint(
-            INonfungiblePositionManager.MintParams({
-                token0: token0,
-                token1: token1,
-                fee: newFee,
-                tickLower: newTickLower,
-                tickUpper: newTickUpper,
-                amount0Desired: amount0,
-                amount1Desired: amount1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: msg.sender,
-                deadline: block.timestamp
-            })
-        );
-
-        _handleResidue(
-            token0,
-            token1,
-            amount0,
-            amount1,
-            amount0Used,
-            amount1Used
-        );
     }
 
     /**
