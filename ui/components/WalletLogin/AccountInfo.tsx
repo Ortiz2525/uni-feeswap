@@ -24,6 +24,7 @@ import {
   useEnsAvatar,
   useNetwork,
   useSwitchNetwork,
+  chain,
 } from "wagmi";
 import { supportedChains } from "@/config";
 import slicedAddress from "@/utils/slicedAddress";
@@ -37,13 +38,17 @@ type Props = {
 
 const AccountInfo = ({ handleOpenModal }: Props) => {
   const { address } = useAccount();
-  const { data: ensName } = useEnsName({ address });
+  const { data: ensName } = useEnsName({
+    address,
+    chainId: chain.mainnet.id,
+  });
   const { data: etherBalance, isLoading: isBalanceLoading } = useBalance({
     addressOrName: address,
   });
   const { switchNetwork } = useSwitchNetwork();
   const { data: ensAvatar } = useEnsAvatar({
     addressOrName: address,
+    chainId: chain.mainnet.id,
   });
 
   const {

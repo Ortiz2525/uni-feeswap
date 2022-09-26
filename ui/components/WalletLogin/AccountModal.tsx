@@ -13,7 +13,13 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { ExternalLinkIcon, CopyIcon } from "@chakra-ui/icons";
-import { useNetwork, useAccount, useEnsName, useDisconnect } from "wagmi";
+import {
+  useNetwork,
+  useAccount,
+  useEnsName,
+  useDisconnect,
+  chain as chain_,
+} from "wagmi";
 import Identicon from "./Identicon";
 import slicedAddress from "@/utils/slicedAddress";
 
@@ -25,7 +31,7 @@ type Props = {
 const AccountModal = ({ isOpen, onClose }: Props) => {
   const { chain } = useNetwork();
   const { address, connector } = useAccount();
-  const { data: ensName } = useEnsName({ address });
+  const { data: ensName } = useEnsName({ address, chainId: chain_.mainnet.id });
   const { disconnect } = useDisconnect();
 
   function handleDisconnectAccount() {

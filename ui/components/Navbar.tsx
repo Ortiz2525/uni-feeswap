@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import { Flex, Heading, Spacer } from "@chakra-ui/react";
 import WalletLogin from "./WalletLogin";
-import SwitchChains from "./SwitchNetwork";
+import SwitchNetwork from "./SwitchNetwork";
 
 function Navbar() {
   const router = useRouter();
@@ -20,7 +20,7 @@ function Navbar() {
         🦄 UniFeeSwap
       </Heading>
       <Spacer />
-      <SwitchChains />
+      <SwitchNetwork />
       <WalletLogin />
     </Flex>
   );
