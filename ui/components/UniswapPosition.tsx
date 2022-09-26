@@ -18,7 +18,7 @@ import {
   useContract,
   useProvider,
 } from "wagmi";
-import { Contract } from "ethers";
+import { constants, Contract } from "ethers";
 import { UniV3Position } from "@/types";
 import useChainInfo from "@/hooks/useChainInfo";
 import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
@@ -52,6 +52,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     onSuccess(data) {
       setOperator(data as unknown as string);
     },
+    enabled: UniV3NonfungiblePositionManager !== constants.AddressZero,
   });
 
   const { config: approveConfig } = usePrepareContractWrite({
@@ -59,16 +60,20 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "approve",
     args: [UniFeeSwap, pos.token_id],
-    enabled: operator?.toLowerCase() !== UniFeeSwap.toLowerCase(),
-    onSuccess(data) {
-      feeSwapWrite?.();
-    },
+    enabled:
+      UniFeeSwap !== constants.AddressZero &&
+      UniV3NonfungiblePositionManager !== constants.AddressZero &&
+      operator?.toLowerCase() !== UniFeeSwap.toLowerCase(),
   });
   const { config: feeSwapConfig } = usePrepareContractWrite({
     addressOrName: UniFeeSwap,
     contractInterface: UniFeeSwapABI,
     functionName: "feeSwap",
     args: [pos.token_id, newFee, 0],
+    enabled:
+      UniFeeSwap !== constants.AddressZero &&
+      UniV3NonfungiblePositionManager !== constants.AddressZero &&
+      operator?.toLowerCase() === UniFeeSwap.toLowerCase(),
   });
 
   const { write: approveWrite, isLoading: isApproveLoading } = useContractWrite(
