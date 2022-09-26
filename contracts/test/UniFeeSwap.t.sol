@@ -55,7 +55,7 @@ contract UniFeeSwapTests is Test {
     function testFeeSwap() external {
         uint24 initFee = 100;
         uint24 newFee = 3_000;
-        uint256 tokenId = _addLiquidity(initFee, -300, 100);
+        uint256 tokenId = _addLiquidity(initFee, -3, 1);
 
         IERC721(address(nonfungiblePositionManager)).approve(
             address(uniFeeSwap),

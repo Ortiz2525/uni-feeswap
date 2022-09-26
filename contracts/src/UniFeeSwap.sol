@@ -11,6 +11,7 @@ import {IERC721} from "@openzeppelin/token/ERC721/IERC721.sol";
  * @title UniFeeSwap
  * @dev Contract that moves your Uniswap V3 liquidity from 1 Fee tier to another
  * @author Apoorv Lathey <apoorvlathey.com>
+ * @notice This is an experimental software and is provided on an "as is" and "as available" basis. No warranties are being given and we will not be liable for any loss incurred through any use of this contract.
  */
 contract UniFeeSwap {
     using SafeERC20 for IERC20;
