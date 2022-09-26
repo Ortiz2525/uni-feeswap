@@ -48,12 +48,7 @@ function SwitchNetwork() {
           </HStack>
         </Button>
       )}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        closeOnOverlayClick={false}
-        isCentered
-      >
+      <Modal isOpen={isModalOpen} onClose={closeModal} isCentered>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>🔁 Switch Network</ModalHeader>
