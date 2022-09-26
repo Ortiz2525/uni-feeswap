@@ -31,17 +31,17 @@ export const chainIdToInfo: {
   };
 } = {
   [chain.optimism.id]: {
-    UniFeeSwap: "0x8C0751530452Ee6a7B98Fe571427D83ADF3335DE",
+    UniFeeSwap: "0x3a7ffb4cc8929afeed81f0aa3bc0ff77f16db7a8",
     UniV3NonfungiblePositionManager,
     feeTiers: ["0.01%", "0.05%", "0.3%", "1%"],
   },
   [chain.polygon.id]: {
-    UniFeeSwap: "0x2C06047C61393F8B1E89BEda86AC8c32E0817f8d",
+    UniFeeSwap: "0xd9fbf3c656de1c544e4b9486ecf77ea4639608ae",
     UniV3NonfungiblePositionManager,
     feeTiers: ["0.01%", "0.05%", "0.3%", "1%"],
   },
   [chain.goerli.id]: {
-    UniFeeSwap: "0xd204c0CFDCea02CdEcff7e23EA248c5c9c0652d6",
+    UniFeeSwap: "0x331831e7996fcd1b56f30b1c5e48121192fe88f5",
     UniV3NonfungiblePositionManager,
     feeTiers: ["0.01%", "0.05%", "0.3%", "1%"],
   },
