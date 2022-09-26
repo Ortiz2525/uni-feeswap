@@ -20,7 +20,12 @@ const UniV3NonfungiblePositionManager =
  * Go to NonfungiblePositionManager -> factory()
  * check if factory.feeAmountTickSpacing() returns non-zero value
  *
- * For 0.01% fee, feeAmount = 100, 0.5% = 500, and so on..
+ * Fee    |  feeAmount  | tickSpacing
+ * 0.01%       100            1
+ * 0.05%       500           10
+ * 0.30%      3000           60
+ * 0.10%     10000          200
+ *
  */
 
 export const chainIdToInfo: {
