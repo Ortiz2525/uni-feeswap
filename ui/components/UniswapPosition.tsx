@@ -15,7 +15,10 @@ import {
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
+  useContract,
+  useProvider,
 } from "wagmi";
+import { Contract } from "ethers";
 import { UniV3Position } from "@/types";
 import useChainInfo from "@/hooks/useChainInfo";
 import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
@@ -24,8 +27,14 @@ import GradientButton from "./GradientButton";
 
 const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
   const { chain } = useNetwork();
+  const provider = useProvider();
   const { UniV3NonfungiblePositionManager, UniFeeSwap, feeTiers } =
     useChainInfo();
+  const nonfungiblePositionManagerContract = useContract<Contract>({
+    addressOrName: UniV3NonfungiblePositionManager,
+    contractInterface: NonfungiblePositionManagerABI,
+    signerOrProvider: provider,
+  });
 
   const [newFeeTierIndex, setNewFeeTierIndex] = useState<number>();
   const [newFee, setNewFee] = useState<number>();
@@ -34,19 +43,11 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     .split(" ")
     .filter((e) => e.slice(-1) === "%")[0];
 
-  const { data: operator } = useContractRead({
-    addressOrName: UniV3NonfungiblePositionManager,
-    contractInterface: NonfungiblePositionManagerABI,
-    functionName: "getApproved",
-    args: pos.token_id,
-  });
-
   const { config: approveConfig } = usePrepareContractWrite({
     addressOrName: UniV3NonfungiblePositionManager,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "approve",
     args: [UniFeeSwap, pos.token_id],
-    enabled: operator?.toLowerCase() !== UniFeeSwap.toLowerCase(),
   });
   const { config: feeSwapConfig } = usePrepareContractWrite({
     addressOrName: UniFeeSwap,
@@ -67,8 +68,12 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
   const { write: feeSwapWrite, isLoading: isFeeSwapLoading } =
     useContractWrite(feeSwapConfig);
 
-  const confirm = () => {
-    if (operator?.toLowerCase() !== UniFeeSwap.toLowerCase()) {
+  const confirm = async () => {
+    const operator = (await nonfungiblePositionManagerContract.getApproved(
+      pos.token_id
+    )) as string;
+
+    if (operator.toLowerCase() !== UniFeeSwap.toLowerCase()) {
       approveWrite?.();
     } else {
       feeSwapWrite?.();
@@ -136,6 +141,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
               <GradientButton
                 text="Confirm"
                 onClick={() => confirm()}
+                isDisabled={newFeeTierIndex === undefined}
                 isLoading={isApproveLoading || isFeeSwapLoading}
               />
             </Center>
