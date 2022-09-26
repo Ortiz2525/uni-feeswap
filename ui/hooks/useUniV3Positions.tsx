@@ -75,7 +75,7 @@ const useUniV3Positions = () => {
             (
               (await nonfungiblePositionManagerContract.tokenOfOwnerByIndex(
                 address,
-                i
+                balance! - 1 - i // getting latest tokenIds on top
               )) as BigNumber
             ).toString()
           )
