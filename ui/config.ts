@@ -6,6 +6,7 @@ export const chainIdToRPC = {
   [chain.optimism.id]: process.env.NEXT_PUBLIC_OPTIMISM_RPC_URL,
   [chain.polygon.id]: process.env.NEXT_PUBLIC_POLYGON_RPC_URL,
   [chain.goerli.id]: process.env.NEXT_PUBLIC_GOERLI_RPC_URL,
+  [chain.mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC_URL, // for ENS resolution
 };
 
 // Mainnet, Polygon, Optimism, Arbitrum, Testnets Address

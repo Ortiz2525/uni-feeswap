@@ -20,11 +20,7 @@ export interface NFTBalance {
 }
 
 export interface UniV3Position {
-  token_address: string;
   token_id: string;
-  owner_of: string;
-  name: string;
-  symbol: string;
   metadata: UniV3Metadata;
 }
 

@@ -17,13 +17,15 @@ import {
   usePrepareContractWrite,
 } from "wagmi";
 import { UniV3Position } from "@/types";
-import { chainIdToInfo } from "@/config";
-import GradientButton from "./GradientButton";
+import useChainInfo from "@/hooks/useChainInfo";
 import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
 import UniFeeSwapABI from "@/abis/UniFeeSwap.json";
+import GradientButton from "./GradientButton";
 
 const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
   const { chain } = useNetwork();
+  const { UniV3NonfungiblePositionManager, UniFeeSwap, feeTiers } =
+    useChainInfo();
 
   const [newFeeTierIndex, setNewFeeTierIndex] = useState<number>();
   const [newFee, setNewFee] = useState<number>();
@@ -33,20 +35,20 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     .filter((e) => e.slice(-1) === "%")[0];
 
   const { data: operator } = useContractRead({
-    addressOrName: chainIdToInfo[chain!.id].UniV3NonfungiblePositionManager,
+    addressOrName: UniV3NonfungiblePositionManager!,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "getApproved",
     args: pos.token_id,
   });
 
   const { config: approveConfig } = usePrepareContractWrite({
-    addressOrName: chainIdToInfo[chain!.id].UniV3NonfungiblePositionManager,
+    addressOrName: UniV3NonfungiblePositionManager!,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "approve",
-    args: [chainIdToInfo[chain!.id].UniFeeSwap, pos.token_id],
+    args: [UniFeeSwap, pos.token_id],
   });
   const { config: feeSwapConfig } = usePrepareContractWrite({
-    addressOrName: chainIdToInfo[chain!.id].UniFeeSwap,
+    addressOrName: UniFeeSwap!,
     contractInterface: UniFeeSwapABI,
     functionName: "feeSwap",
     args: [pos.token_id, newFee, 0],
@@ -65,10 +67,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     useContractWrite(feeSwapConfig);
 
   const confirm = () => {
-    if (
-      operator?.toLowerCase() !==
-      chainIdToInfo[chain!.id].UniFeeSwap.toLowerCase()
-    ) {
+    if (operator?.toLowerCase() !== UniFeeSwap?.toLowerCase()) {
       approveWrite?.();
     } else {
       feeSwapWrite?.();
@@ -77,11 +76,7 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
 
   useEffect(() => {
     if (newFeeTierIndex && chain) {
-      setNewFee(
-        parseFloat(
-          chainIdToInfo[chain.id].feeTiers[newFeeTierIndex].slice(0, -1)
-        ) * 10000
-      );
+      setNewFee(parseFloat(feeTiers![newFeeTierIndex].slice(0, -1)) * 10000);
     }
   }, [newFeeTierIndex, chain]);
 
@@ -118,7 +113,8 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
                 justifyContent="space-between"
               >
                 {chain &&
-                  chainIdToInfo[chain.id].feeTiers
+                  feeTiers &&
+                  feeTiers
                     .filter((tier) => tier !== currentFeeTier)
                     .map((tier, i) => (
                       <Button
