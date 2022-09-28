@@ -6,7 +6,7 @@ import {
   useProvider,
   useNetwork,
 } from "wagmi";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, constants, Contract } from "ethers";
 import useChainInfo from "@/hooks/useChainInfo";
 import { UniV3Position, UniV3Metadata } from "@/types";
 import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
@@ -19,7 +19,7 @@ const useUniV3Positions = () => {
   const provider = useProvider();
   const { UniV3NonfungiblePositionManager } = useChainInfo();
   const nonfungiblePositionManagerContract = useContract<Contract>({
-    addressOrName: UniV3NonfungiblePositionManager,
+    addressOrName: UniV3NonfungiblePositionManager ?? constants.AddressZero,
     contractInterface: NonfungiblePositionManagerABI,
     signerOrProvider: provider,
   });
@@ -29,8 +29,8 @@ const useUniV3Positions = () => {
   const [tokenIds, setTokenIds] = useState<string[]>();
   const [uniV3Positions, setUniV3Positions] = useState<UniV3Position[]>();
 
-  const { data } = useContractRead({
-    addressOrName: UniV3NonfungiblePositionManager,
+  const { refetch: refetchPositions } = useContractRead({
+    addressOrName: UniV3NonfungiblePositionManager ?? constants.AddressZero,
     contractInterface: NonfungiblePositionManagerABI,
     functionName: "balanceOf",
     args: address,
@@ -117,7 +117,13 @@ const useUniV3Positions = () => {
     }
   }, [tokenIds, nonfungiblePositionManagerContract]);
 
-  return { balance, tokenIds, uniV3Positions, fetchingUniV3Positions };
+  return {
+    balance,
+    tokenIds,
+    uniV3Positions,
+    fetchingUniV3Positions,
+    refetchPositions,
+  };
 };
 
 export default useUniV3Positions;

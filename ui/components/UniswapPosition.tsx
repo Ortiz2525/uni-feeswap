@@ -12,89 +12,60 @@ import {
 } from "@chakra-ui/react";
 import {
   useNetwork,
-  useContractRead,
   useContractWrite,
   usePrepareContractWrite,
-  useContract,
-  useProvider,
+  useWaitForTransaction,
 } from "wagmi";
-import { constants, Contract } from "ethers";
+import { constants } from "ethers";
 import { UniV3Position } from "@/types";
 import useChainInfo from "@/hooks/useChainInfo";
-import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
+import useUniV3Positions from "@/hooks/useUniV3Positions";
+import useUniV3ApproveCallback, {
+  ApprovalState,
+} from "@/hooks/useUniV3ApproveCallback";
 import UniFeeSwapABI from "@/abis/UniFeeSwap.json";
 import GradientButton from "./GradientButton";
 
 const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
   const { chain } = useNetwork();
-  const provider = useProvider();
+
   const { UniV3NonfungiblePositionManager, UniFeeSwap, feeTiers } =
     useChainInfo();
-  const nonfungiblePositionManagerContract = useContract<Contract>({
-    addressOrName: UniV3NonfungiblePositionManager,
-    contractInterface: NonfungiblePositionManagerABI,
-    signerOrProvider: provider,
-  });
+  const { refetchPositions } = useUniV3Positions();
+  const { approvalState, approve } = useUniV3ApproveCallback(pos.token_id);
 
   const [feeTierPercent, setFeeTierPercent] = useState<string>();
   const [newFee, setNewFee] = useState<number>();
-  const [operator, setOperator] = useState<string>();
 
   const currentFeeTier = pos.metadata.name
     .split(" ")
     .filter((e) => e.slice(-1) === "%")[0];
 
-  useContractRead({
-    addressOrName: UniV3NonfungiblePositionManager,
-    contractInterface: NonfungiblePositionManagerABI,
-    functionName: "getApproved",
-    args: pos.token_id,
-    onSuccess(data) {
-      setOperator(data as unknown as string);
-    },
-    enabled: UniV3NonfungiblePositionManager !== constants.AddressZero,
-  });
-
-  const { config: approveConfig } = usePrepareContractWrite({
-    addressOrName: UniV3NonfungiblePositionManager,
-    contractInterface: NonfungiblePositionManagerABI,
-    functionName: "approve",
-    args: [UniFeeSwap, pos.token_id],
-    enabled:
-      UniFeeSwap !== constants.AddressZero &&
-      UniV3NonfungiblePositionManager !== constants.AddressZero &&
-      operator?.toLowerCase() !== UniFeeSwap.toLowerCase(),
-  });
   const { config: feeSwapConfig } = usePrepareContractWrite({
-    addressOrName: UniFeeSwap,
+    addressOrName: UniFeeSwap ?? constants.AddressZero,
     contractInterface: UniFeeSwapABI,
     functionName: "feeSwap",
     args: [pos.token_id, newFee, 0],
     enabled:
-      UniFeeSwap !== constants.AddressZero &&
-      UniV3NonfungiblePositionManager !== constants.AddressZero &&
-      operator?.toLowerCase() === UniFeeSwap.toLowerCase(),
+      !!UniFeeSwap &&
+      !!UniV3NonfungiblePositionManager &&
+      !!newFee && // prevent 'invalid BigNumber value' errors in console when it's undefined
+      approvalState === ApprovalState.APPROVED,
   });
 
-  const { write: approveWrite, isLoading: isApproveLoading } = useContractWrite(
-    {
-      ...approveConfig,
-      async onSuccess(data) {
-        await data.wait();
-        feeSwapWrite?.();
-      },
-    }
-  );
-  const { write: feeSwapWrite, isLoading: isFeeSwapLoading } =
-    useContractWrite(feeSwapConfig);
-
-  const confirm = async () => {
-    if (operator?.toLowerCase() !== UniFeeSwap.toLowerCase()) {
-      approveWrite?.();
-    } else {
-      feeSwapWrite?.();
-    }
-  };
+  const {
+    data: feeSwapData,
+    write: feeSwapWrite,
+    isLoading: isFeeSwapLoading,
+  } = useContractWrite({
+    ...feeSwapConfig,
+    onSuccess(data) {
+      refetchPositions();
+    },
+  });
+  const { isLoading: isTransactionPending } = useWaitForTransaction({
+    hash: feeSwapData?.hash,
+  });
 
   useEffect(() => {
     if (feeTierPercent && chain && feeTiers) {
@@ -154,11 +125,26 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
               </Stack>
             </Center>
             <Center mt="2rem">
+              {[ApprovalState.NOT_APPROVED, ApprovalState.PENDING].includes(
+                approvalState
+              ) && (
+                <GradientButton
+                  mr="1rem"
+                  text="Approve"
+                  onClick={approve}
+                  isDisabled={feeTierPercent === undefined}
+                  isLoading={approvalState === ApprovalState.PENDING}
+                />
+              )}
               <GradientButton
-                text="Confirm"
-                onClick={() => confirm()}
-                isDisabled={feeTierPercent === undefined}
-                isLoading={isApproveLoading || isFeeSwapLoading}
+                text="Swap"
+                onClick={() => feeSwapWrite?.()}
+                isDisabled={
+                  feeTierPercent === undefined ||
+                  approvalState !== ApprovalState.APPROVED ||
+                  !feeSwapWrite
+                }
+                isLoading={isFeeSwapLoading || isTransactionPending}
               />
             </Center>
           </Box>

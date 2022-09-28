@@ -6,9 +6,9 @@ import { chainIdToInfo } from "@/config";
 const useChainInfo = () => {
   const { chain } = useNetwork();
 
-  const [UniFeeSwap, setUniFeeSwap] = useState<string>(constants.AddressZero);
+  const [UniFeeSwap, setUniFeeSwap] = useState<string>();
   const [UniV3NonfungiblePositionManager, setUniV3NonfungiblePositionManager] =
-    useState<string>(constants.AddressZero);
+    useState<string>();
   const [feeTiers, setFeeTiers] = useState<string[]>();
 
   useEffect(() => {
@@ -19,8 +19,8 @@ const useChainInfo = () => {
       );
       setFeeTiers(chainIdToInfo[chain.id].feeTiers);
     } else {
-      setUniFeeSwap(constants.AddressZero);
-      setUniV3NonfungiblePositionManager(constants.AddressZero);
+      setUniFeeSwap(undefined);
+      setUniV3NonfungiblePositionManager(undefined);
       setFeeTiers(undefined);
     }
   }, [chain]);
