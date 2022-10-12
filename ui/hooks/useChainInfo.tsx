@@ -12,7 +12,7 @@ const useChainInfo = () => {
   const [feeTiers, setFeeTiers] = useState<string[]>();
 
   useEffect(() => {
-    if (chain) {
+    if (chain && chainIdToInfo[chain.id]) {
       setUniFeeSwap(chainIdToInfo[chain.id].UniFeeSwap);
       setUniV3NonfungiblePositionManager(
         chainIdToInfo[chain.id].UniV3NonfungiblePositionManager
