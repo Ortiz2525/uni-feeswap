@@ -19,7 +19,7 @@ import {
 import { constants } from "ethers";
 import { UniV3Position } from "@/types";
 import useChainInfo from "@/hooks/useChainInfo";
-import useUniV3Positions from "@/hooks/useUniV3Positions";
+import { useUniV3Positions } from "@/contexts/UniV3PositionsContext";
 import useUniV3ApproveCallback, {
   ApprovalState,
 } from "@/hooks/useUniV3ApproveCallback";
@@ -59,7 +59,8 @@ const UniswapPosition = ({ pos }: { pos: UniV3Position }) => {
     isLoading: isFeeSwapLoading,
   } = useContractWrite({
     ...feeSwapConfig,
-    onSuccess(data) {
+    async onSuccess(data) {
+      await data.wait();
       refetchPositions();
     },
   });

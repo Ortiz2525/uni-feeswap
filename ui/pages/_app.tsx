@@ -6,6 +6,7 @@ import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { InjectedConnector } from "wagmi/connectors/injected";
 import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
 import { supportedChains, chainIdToRPC } from "@/config";
+import { UniV3PositionsProvider } from "@/contexts/UniV3PositionsContext";
 
 const { chains, provider } = configureChains(
   [
@@ -45,7 +46,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider theme={customTheme}>
       <WagmiConfig client={client}>
-        <Component {...pageProps} />
+        <UniV3PositionsProvider>
+          <Component {...pageProps} />
+        </UniV3PositionsProvider>
       </WagmiConfig>
     </ChakraProvider>
   );

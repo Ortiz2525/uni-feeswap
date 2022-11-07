@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { useAccount } from "wagmi";
 import { UniV3Position } from "@/types";
-import useUniV3Positions from "@/hooks/useUniV3Positions";
+import { useUniV3Positions } from "@/contexts/UniV3PositionsContext";
 import Layout from "@/components/Layout";
 import UniswapPositionCard from "@/components/UniswapPositionCard";
 import UniswapPosition from "@/components/UniswapPosition";

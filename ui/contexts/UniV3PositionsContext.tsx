@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import {
   useContractRead,
   useAccount,
@@ -12,7 +12,25 @@ import { UniV3Position, UniV3Metadata } from "@/types";
 import NonfungiblePositionManagerABI from "@/abis/NonfungiblePositionManager.json";
 import useSupportedChain from "@/hooks/useSupportedChain";
 
-const useUniV3Positions = () => {
+type UniV3PositionsContextType = {
+  balance: number | undefined;
+  tokenIds: string[] | undefined;
+  uniV3Positions: UniV3Position[] | undefined;
+  fetchingUniV3Positions: boolean;
+  refetchPositions: Function;
+};
+
+export const UniV3PositionsContext = createContext<UniV3PositionsContextType>({
+  balance: undefined,
+  tokenIds: undefined,
+  uniV3Positions: undefined,
+  fetchingUniV3Positions: false,
+  refetchPositions: () => {},
+});
+
+export const UniV3PositionsProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const { address } = useAccount();
   const { chain } = useNetwork();
   const { isSupportedChain } = useSupportedChain();
@@ -28,22 +46,32 @@ const useUniV3Positions = () => {
   const [balance, setBalance] = useState<number>();
   const [tokenIds, setTokenIds] = useState<string[]>();
   const [uniV3Positions, setUniV3Positions] = useState<UniV3Position[]>();
+  const [isRefetchingPositions, setIsRefetchingPositions] = useState(false);
 
-  const { refetch: refetchPositions } = useContractRead({
-    addressOrName: UniV3NonfungiblePositionManager ?? constants.AddressZero,
-    contractInterface: NonfungiblePositionManagerABI,
-    functionName: "balanceOf",
-    args: address,
-    onSuccess(data) {
-      setBalance((data as unknown as BigNumber).toNumber());
-    },
-    cacheOnBlock: true,
-    cacheTime: 2_000,
-    enabled: isSupportedChain,
-  });
+  const { refetch: refetchPositions, isRefetching: isRefetchingBalance } =
+    useContractRead({
+      addressOrName: UniV3NonfungiblePositionManager ?? constants.AddressZero,
+      contractInterface: NonfungiblePositionManagerABI,
+      functionName: "balanceOf",
+      args: address,
+      onSuccess(data) {
+        setBalance((data as unknown as BigNumber).toNumber());
+      },
+      cacheOnBlock: true,
+      cacheTime: 2_000,
+      enabled: isSupportedChain,
+    });
 
   useEffect(() => {
-    if (chain && address) {
+    if (isRefetchingBalance) {
+      setIsRefetchingPositions(true);
+    }
+  }, [isRefetchingBalance]);
+
+  useEffect(() => {
+    if (isRefetchingPositions) {
+      setFetchingUniV3Positions(true);
+    } else if (chain && address) {
       if (balance) {
         if (balance > 0) {
           if (!uniV3Positions) {
@@ -58,7 +86,7 @@ const useUniV3Positions = () => {
     } else {
       setFetchingUniV3Positions(false);
     }
-  }, [balance, uniV3Positions, chain, address]);
+  }, [balance, uniV3Positions, chain, address, isRefetchingPositions]);
 
   useEffect(() => {
     // reset when chain or address changed
@@ -110,20 +138,27 @@ const useUniV3Positions = () => {
       }
 
       setUniV3Positions(_positions);
+      setIsRefetchingPositions(false);
     };
 
     if (tokenIds && tokenIds.length > 0) {
       fetchPositions();
     }
-  }, [tokenIds, nonfungiblePositionManagerContract]);
+  }, [tokenIds, nonfungiblePositionManagerContract, isRefetchingPositions]);
 
-  return {
-    balance,
-    tokenIds,
-    uniV3Positions,
-    fetchingUniV3Positions,
-    refetchPositions,
-  };
+  return (
+    <UniV3PositionsContext.Provider
+      value={{
+        balance,
+        tokenIds,
+        uniV3Positions,
+        fetchingUniV3Positions,
+        refetchPositions,
+      }}
+    >
+      {children}
+    </UniV3PositionsContext.Provider>
+  );
 };
 
-export default useUniV3Positions;
+export const useUniV3Positions = () => useContext(UniV3PositionsContext);
